@@ -1,0 +1,8 @@
+favorite:
+  drink: "coffee"
+  food: "pizza"
+  pizzaToppings:
+    - olives
+    - cheese
+    - peppers
+    - onions
