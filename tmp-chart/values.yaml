@@ -1,0 +1,47 @@
+deploymentMode: local
+environmentType: "Production"
+imagePolicy: IfNotPresent
+deployTelemetryBackupCronJob: true
+
+resourceConstriants:
+  cpuRequested: 250m
+  cpuLimit: 1000m
+  memoryRequested: 125M
+  memoryLimit: 1000M
+
+applicationDetails:
+  name: "sds"
+  version: "0.0.1"
+  area: "data-services"
+  team: "sds"
+environment:
+  environment: "development"
+
+buildVariables:
+  packageVersion: 0.829.0
+  tag: 0.829.0
+  imageTag: 0.829.15
+geography:
+  applicationInsightsConnectionStringSecretName: appi-turing2-us-connectionstring
+  applicationInsightsInstrumentationKeySecretName: appi-turing2-us-instrumentationkey
+  applicationInsightsName: appi-turing2-us
+  logAnalyticsWorkspaceName: log-turing2-us
+  name: us
+  primaryRegion: centralus
+  regionNames: centralus
+  resourceGroupName: rg-turing2-us
+  serviceBusConnectionStringSecretName: sb-turing2-us-6jvwiyvpgz4lg-connectionstring
+  serviceBusName: sb-turing2-us-6jvwiyvpgz4lg
+region:
+  aksClusterName: aks-turing2-usce
+  aksKeyVaultSecretsProviderClientId: 59948000-617e-491b-a1b0-e6bbbd0aaf0a
+  aksKeyVaultSecretsProviderPrincipalId: a5f6dc6b-abc4-4d9a-a0c3-5b2a283a11b2
+  aksOidcIssuerUrl: https://centralus.oic.prod-aks.azure.com/d1fe8e44-4d35-4dad-8ea9-d9d9cb9a988c/4be22621-49ea-465e-a67e-f669d7dd02b1/
+  aksTenantId: d1fe8e44-4d35-4dad-8ea9-d9d9cb9a988c
+  geography: us
+  nodeResourceGroupName: rg-turing2-usce-node-aks
+  plsName: pl-turing2-usce-gat-a7lkl
+  region: centralus
+  regionalKeyVaultName: kv-turing2-usce-a7lklikz
+  regionalResourceGroupName: rg-turing2-usce
+  regioncode: usce

@@ -1,0 +1,7 @@
+{{- $telemetryAccount := 
+  dict 
+    "storageAccountName" (include "sds.storageAccountName" (set $ "suffix" "tele"))
+    "resourceGroupName"  (include "sds.dataResourceGroupName" .)
+    "namespace" (include "sds.namespace" .)
+    "global" $ -}}
+{{ include "sds.alerts.storageAlerts" $telemetryAccount }}

@@ -1,0 +1,19 @@
+deploymentMode: pipeline
+
+environment:
+  environment: "development"
+  environmentType: "Development"
+
+geography:
+  name: us
+  primaryRegion: centralus
+  monitoringActionGroupId: "/subscriptions/3353f7d1-8de2-409d-a808-4562c81a9c67/resourceGroups/rg-devonebox-usce-sds/providers/microsoft.insights/actiongroups/devonebox-alert-actiongroups"
+
+geography1:
+  name: us
+  primaryRegion: centralus
+  monitoringActionGroupId: "/subscriptions/3353f7d1-8de2-409d-a808-4562c81a9c67/resourceGroups/rg-devonebox-usce-sds/providers/microsoft.insights/actiongroups/devonebox-alert-actiongroups"
+
+region:
+  region: centralus
+  regioncode: usce

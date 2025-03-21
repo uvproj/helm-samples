@@ -1,0 +1,44 @@
+deploymentMode: local
+environmentType: "Development"
+imagePolicy: Never
+deployTelemetryBackupCronJob: true
+# applicationInsightsInstrumentationKey: Instrumentation key to Application Insights
+applicationInsightsInstrumentationKey: "[Application Insights Instrumentation Key]"
+
+resourceConstriants:
+  cpuRequested: 250m
+  cpuLimit: 1000m
+  memoryRequested: 125M
+  memoryLimit: 1000M
+
+buildVariables:
+  tag: "latest"
+
+applicationDetails:
+  name: "sds"
+  version: "0.0.1"
+  area: "data-services"
+  team: "sds"
+
+environment:
+  tenantId: d1fe8e44-4d35-4dad-8ea9-d9d9cb9a988c
+  environment: "[Cluster Name]"
+  containerRegistryServer: "localhost:5000"
+
+geoBicepOp:
+  # sdsBackupResourceGroupName: [Resource Group Name Containing Backup Storage Accounts]
+  sdsBackupResourceGroupName: ""
+  # subscriptionId: [Subscription for Backup Resource Group]
+  subscriptionId: ""
+  # sdsResourceGroupName: [Resource Group Name for Storage Accounts]
+  sdsResourceGroupName: ""
+  # telemetryBlobServiceUri: [Telemetry Storage Account Blob Service Uri]
+  telemetryBlobServiceUri: ""
+  # telemetryBackupBlobServiceUri: [Telemetry Backup Storage Account Blob Service Uri]
+  telemetryBackupBlobServiceUri: ""
+  sdsRegion: "us"
+environmentCredentials:
+  # clientId: [Azure Client Id that has Contributor role to backup resource group]
+  clientId: "[Azure Client Id that has Contributor role to backup resource group]"
+  # clientSecret: [Azure Client Secret that has Contributor role to backup resource group]
+  clientSecret: "[Azure Client Secret that has Contributor role to backup resource group]"

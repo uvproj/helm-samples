@@ -1,0 +1,147 @@
+# Define booleans for distinguishing between local and pipeline
+{{- $isLocal := (eq .Values.deploymentMode "local") -}}
+{{- $isPipeline := (eq .Values.deploymentMode "pipeline") -}}
+
+{{- $environmentCredentials := .Values.environmentCredentials | default dict -}}
+
+deploymentMode: {{ .Values.deploymentMode }}
+useWorkloadIdentities: {{ ne .Values.useWorkloadIdentities false }}
+
+{{- if $isPipeline}}
+keyVaults:
+  # KeyVault for region
+  - name: "{{ .Values.region.regionalKeyVaultName }}"
+    secretProviderClientId: "{{ .Values.region.aksKeyVaultSecretsProviderClientId }}"
+    keyVaultTenantId: "{{ .Values.environment.tenantId }}"
+    secretsToLoad: 
+      - "{{ .Values.geography.applicationInsightsConnectionStringSecretName }}"
+      - "{{ .Values.geography.applicationInsightsInstrumentationKeySecretName }}"
+{{- end }}
+
+deployments:
+  - deployment:
+      name: sds-restorer
+{{- if $isPipeline }}
+      serviceAccount:
+        workloadIdentityClientId: "{{ .Values.geoBicepOp.restorerWorkloadIdentityClientId }}"
+{{- end }}
+      automountServiceAccountToken: true
+      daprAppId: ni--sds--restorer
+      daprAppPort: 8083
+      daprIncludeTracing: true
+      scaling:
+        targetCPUUtilizationPercentage: 60
+        targetMemoryUtilizationPercentage : 60
+        minReplicas: 1
+        maxReplicas: 1
+      containers:
+        - container:
+            name: sdsrestore
+            imageName: aveva-platform-sds-restorer
+            repository: "{{ .Values.environment.containerRegistryServer }}"
+            imagePullPolicy: {{ .Values.imagePolicy }}
+            tag: "{{ .Values.buildVariables.tag }}"
+            terminationGracePeriodSeconds: 30
+            port: 8083
+            cpuRequested: {{ .Values.resourceConstriants.cpuRequested }}
+            cpuLimit: {{ .Values.resourceConstriants.cpuLimit }}
+            memoryRequested: {{ .Values.resourceConstriants.memoryRequested }}
+            memoryLimit: {{ .Values.resourceConstriants.memoryLimit }}
+            environmentVariables:
+              "ASPNETCORE_URLS": "http://+:8083"
+              "DOTNET_GCHeapHardLimitPercent": 5F # 95% ensures that GC will collect aggressively before throwing OOM exceptions
+              "SUBSCRIPTION_ID": "{{ .Values.geoBicepOp.subscriptionId }}"
+              "RESOURCE_GROUP_NAME": "{{ .Values.geoBicepOp.sdsBackupResourceGroupName }}"
+              "TELEMETRY_BLOB_SERVICE_ENDPOINT": "{{ .Values.geoBicepOp.telemetryBlobServiceUri }}"
+              "TELEMETRY_BACKUP_BLOB_SERVICE_ENDPOINT": "{{ .Values.geoBicepOp.telemetryBackupBlobServiceUri }}"
+              "ASPNETCORE_ENVIRONMENT": "{{ .Values.environmentType }}"
+{{- if not $isPipeline }}
+              "AZURE_TENANT_ID": "{{ .Values.environment.tenantId }}"
+              "AZURE_CLIENT_ID": {{ $environmentCredentials.clientId | default ""  }}
+              "AZURE_CLIENT_SECRET": {{ $environmentCredentials.clientSecret | default ""  }}
+{{- else }}   
+            environmentVariablesFromSecrets:
+              - name: "APPLICATIONINSIGHTS_CONNECTION_STRING"
+                secretName: "{{ .Values.geography.applicationInsightsConnectionStringSecretName }}"
+{{- end }}
+            environmentVariablesFromPodFields:
+              - name: NODE_NAME
+                fieldPath: spec.nodeName
+              - name: POD_NAME
+                fieldPath: metadata.name
+              - name: POD_UID
+                fieldPath: metadata.uid
+{{- if eq .Values.environment.environment "datadev" }}
+  - deployment:
+      name: sds-eventprovidertestservice
+      daprAppId: ni--sds--eventprovidertestservice
+      daprAppPort: 8080
+      daprIncludeTracing: true
+      daprHttpMaxRequestSize: 1024
+      automountServiceAccountToken: true
+      scaling:
+        targetCPUUtilizationPercentage: 60
+        targetMemoryUtilizationPercentage : 60
+        minReplicas: 1
+        maxReplicas: 1
+      containers:
+        - container:
+            name: eventprovidertestservice
+            imageName: aveva-platform-sds-eventprovidertestservice
+            repository: "{{ .Values.environment.containerRegistryServer }}"
+            imagePullPolicy: "{{ .Values.imagePolicy }}"
+            tag: "{{ .Values.buildVariables.tag }}"
+            terminationGracePeriodSeconds: 30
+            port: 8080
+            cpuRequested: {{ .Values.resourceConstriants.cpuRequested }}
+            cpuLimit: {{ .Values.resourceConstriants.cpuLimit }}
+            memoryRequested: {{ .Values.resourceConstriants.memoryRequested }}
+            memoryLimit: {{ .Values.resourceConstriants.memoryLimit }}
+            environmentVariables:
+              "DOTNET_GCHeapHardLimitPercent": 5F # 95% ensures that GC will collect aggressively before throwing OOM exceptions
+              "ASPNETCORE_ENVIRONMENT": "Development"
+            environmentVariablesFromPodFields:
+              - name: NODE_NAME
+                fieldPath: spec.nodeName
+              - name: POD_NAME
+                fieldPath: metadata.name
+              - name: POD_UID
+                fieldPath: metadata.uid
+{{- end }}
+
+cronJobs:
+{{- if .Values.deployTelemetryBackupCronJob }}
+  - cronJob:
+      name: telemetry-backup
+      schedule: "0 0 * * *"
+{{- if $isPipeline }}
+      serviceAccount:
+        workloadIdentityClientId: "{{ .Values.geoBicepOp.teleBackupWorkloadIdentityClientId }}"
+{{- end }}
+      containers:
+        - container:
+            imageName: aveva-platform-sds-telemetrybackupprocessor
+            repository: "{{ .Values.environment.containerRegistryServer }}"
+            imagePullPolicy: "{{ .Values.imagePolicy }}"
+            tag: "{{ .Values.buildVariables.tag }}"
+            cpuRequested: {{ .Values.resourceConstriants.cpuRequested }}
+            cpuLimit: {{ .Values.resourceConstriants.cpuLimit }}
+            memoryRequested: {{ .Values.resourceConstriants.memoryRequested }}
+            memoryLimit: {{ .Values.resourceConstriants.memoryLimit }}
+            environmentVariables:
+              "TELEMETRY_BLOB_SERVICE_ENDPOINT": "{{ .Values.geoBicepOp.telemetryBlobServiceUri }}"
+              "TELEMETRY_BACKUP_BLOB_SERVICE_ENDPOINT": "{{ .Values.geoBicepOp.telemetryBackupBlobServiceUri }}"
+              "CLUSTER_NAME": "{{ .Values.environment.environment }}"
+              "CLUSTER_REGION": "{{ .Values.geoBicepOp.sdsRegion }}"
+              "ASPNETCORE_ENVIRONMENT": "{{ .Values.environmentType }}"
+{{- if not $isPipeline }}
+              "AZURE_TENANT_ID": "{{ .Values.environment.tenantId }}"
+              "AZURE_CLIENT_ID": {{ $environmentCredentials.clientId | default ""  }}
+              "AZURE_CLIENT_SECRET": {{ $environmentCredentials.clientSecret | default ""  }}
+              "AI_INSTRUMENTATION_KEY": {{ .Values.applicationInsightsInstrumentationKey }}
+{{- else }}
+            environmentVariablesFromSecrets:
+              - name: "AI_INSTRUMENTATION_KEY"
+                secretName: "{{ .Values.geography.applicationInsightsInstrumentationKeySecretName }}"
+{{- end }}
+{{- end }}

@@ -1,0 +1,57 @@
+deploymentMode: pipeline
+environmentType: "Development"
+imagePolicy: Never
+deployTelemetryBackupCronJob: false
+useWorkloadIdentities: false
+
+resourceConstriants:
+  cpuRequested: 250m
+  cpuLimit: 1000m
+  memoryRequested: 125M
+  memoryLimit: 1000M
+
+buildVariables:
+  tag: "latest"
+
+applicationDetails:
+  name: "sds"
+  version: "0.0.1"
+  area: "data-services"
+  team: "sds"
+
+environment:
+  tenantId: ""
+  environment: "devonebox"
+  containerRegistryServer: ""
+
+geography:
+  resourceGroupName: devonebox
+  monitoringActionGroupId: "/subscriptions/3353f7d1-8de2-409d-a808-4562c81a9c67/resourceGroups/rg-devonebox-usce-sds/providers/microsoft.insights/actiongroups/devonebox-alert-actiongroups"
+
+region:
+  regionalResourceGroupName: devonebox
+
+geoBicepOp:
+  # sdsBackupResourceGroupName: [Resource Group Name Containing Backup Storage Accounts]
+  sdsBackupResourceGroupName: ""
+  # [Subscription for Backup Resource Group]
+  subscriptionId: ""
+  # [Resource Group Name for Storage Accounts]
+  sdsResourceGroupName: ""
+  # [Telemetry Storage Account Blob Service Uri]
+  telemetryBlobServiceUri: ""
+  # [Telemetry Backup Storage Account Blob Service Uri]
+  telemetryBackupBlobServiceUri: ""
+  sdsRegion: "us"
+
+localOverrides:
+  resourceGroupNames:
+    # data: Resource Group Name for Storage Accounts
+    data: "devonebox"
+    # backup: Resource Group Name Containing Backup Storage Accounts
+    backup: "devonebox"
+  # telemetryBlobServiceUri: Telemetry Storage Account Blob Service Uri
+  telemetryBlobServiceUri: ""
+  # telemetryBackupBlobServiceUri: Telemetry Backup Storage Account Blob Service Uri
+  telemetryBackupBlobServiceUri: ""
+

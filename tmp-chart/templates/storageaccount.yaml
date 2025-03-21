@@ -1,0 +1,25 @@
+apiVersion: storage.azure.com/v1api20230101
+kind: StorageAccount
+metadata:
+  name: {{ include "sds.storageAccountName" (set $ "suffix" "tele") }}
+spec:
+  location: "{{ .Values.geography.primaryRegion }}"
+  owner:
+    name: {{ include "sds.dataResourceGroupName" . }}
+  kind: Storage
+  sku:
+    name: "Standard_LRS"
+  minimumTlsVersion: TLS1_2
+---
+apiVersion: storage.azure.com/v1api20230101
+kind: StorageAccount
+metadata:
+  name: {{ include "sds.storageAccountName" (set $ "suffix" "telebackup") }}
+spec:
+  location: "{{ .Values.geography.primaryRegion }}"
+  owner:
+    name: {{ include "sds.dataResourceGroupName" . }}
+  kind: Storage
+  sku:
+    name: "Standard_LRS"
+  minimumTlsVersion: TLS1_2

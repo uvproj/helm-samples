@@ -1,0 +1,9 @@
+apiVersion: resources.azure.com/v1api20200601
+kind: ResourceGroup
+metadata:
+  name: {{ include "sds.dataResourceGroupName" . }}
+  namespace: {{ include "sds.namespace" . }}
+  annotations:
+    "serviceoperator.azure.com/reconcile-policy": skip
+spec:
+  location: "{{ .Values.geography.primaryRegion }}"

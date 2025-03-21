@@ -1,0 +1,51 @@
+{{- if eq .Values.environment.environmentLevel "dev" -}}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: sds-image-prepuller
+spec:
+  selector:
+    matchLabels:
+      name: sds-image-prepuller
+  template:
+    metadata:
+      labels:
+        name: sds-image-prepuller
+    spec:
+      {{- if eq .Values.deploymentMode "pipeline" }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: kubernetes.azure.com/mode
+                operator: In
+                values:
+                - user
+      {{- end }}
+      initContainers:
+        - name: prepull-sp
+          {{- $scope := dict "global" . "imageName" "aveva-platform-sds-streamprocessor" }}
+          {{- include "sdsImage" $scope  | indent 10 }}
+          # Use a known command that will exit successfully immediately
+          # Any no-op command will do but YMMV with scratch based containers
+          command: ["sh", "-c", "'true'"]
+
+        - name: prepull-rm
+          {{- $scope := dict "global" . "imageName" "aveva-platform-sds-requestmanager" }}
+          {{- include "sdsImage" $scope  | indent 10 }}
+          command: ["sh", "-c", "'true'"]
+
+      # Use the pause container to ensure the Pod goes into a `Running` phase
+      # but doesn't take up resource on the cluster
+      containers:
+        - name: pause
+          image: registry.k8s.io/pause:3.9
+          resources:
+            limits:
+              cpu: 1m
+              memory: 16Mi
+            requests:
+              cpu: 1m
+              memory: 16Mi
+{{- end -}}

@@ -1,0 +1,5 @@
+{{- include "libchart.configmap" (list . "tmpchart.configmap") -}}
+{{- define "tmpchart.configmap" -}}
+data:
+  myvalue: "Hello World"
+{{- end -}}
